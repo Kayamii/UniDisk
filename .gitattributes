@@ -1,0 +1,12 @@
+# Normalize line endings to LF in the repo (this project builds in Linux
+# containers; CRLF would break shell scripts and Dockerfile commands).
+* text=auto eol=lf
+
+# Treat binary assets as binary (no EOL conversion).
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary

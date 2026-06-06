@@ -1,0 +1,21 @@
+# Node
+web/node_modules/
+web/dist/
+
+# Go
+backend/unidisk
+backend/data/
+
+# Local data / databases
+data/
+*.db
+*.db-shm
+*.db-wal
+
+# Env / secrets / encryption keys
+.env
+.env.local
+*.key
+
+# Editor
+.DS_Store

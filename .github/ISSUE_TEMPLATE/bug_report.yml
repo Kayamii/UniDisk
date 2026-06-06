@@ -1,0 +1,43 @@
+name: Bug report
+description: Report a problem with UniDisk
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug, and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to '...'
+        2. Click '...'
+        3. See error
+    validations:
+      required: true
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: How are you running UniDisk?
+      options:
+        - Docker / Docker Compose
+        - Prebuilt image (ghcr.io / Docker Hub)
+        - From source
+        - Behind a reverse proxy
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version / image tag
+      placeholder: e.g. v1.0.0, latest, or commit SHA
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Container/server logs around the error (redact any secrets).
+      render: shell

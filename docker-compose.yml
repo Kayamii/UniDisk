@@ -1,0 +1,48 @@
+services:
+  unidisk:
+    build: .
+    image: unidisk:latest
+    ports:
+      # Host port is configurable; defaults to 8080. Override with UNIDISK_PORT
+      # in your .env if 8080 is taken (e.g. UNIDISK_PORT=8081).
+      - "${UNIDISK_PORT:-8080}:8080"
+    volumes:
+      - unidisk-data:/data
+    environment:
+      # Bootstrap administrator, seeded on first boot (when no users exist).
+      # This is the ONLY way the initial admin is created — there is no
+      # self-registration. After logging in, create real users and (optionally)
+      # delete this seeded admin once another admin exists.
+      UNIDISK_ADMIN_EMAIL: "${UNIDISK_ADMIN_EMAIL:-admin@unidisk.local}"
+      UNIDISK_ADMIN_PASSWORD: "${UNIDISK_ADMIN_PASSWORD:-changeme123}"
+      # Set a fixed secret in production so sessions survive restarts (otherwise
+      # a random one is generated each boot and everyone is logged out).
+      UNIDISK_JWT_SECRET: "${UNIDISK_JWT_SECRET:-}"
+      # Encrypts provider credentials at rest. Optional — if empty, a key is
+      # generated once and persisted in the data volume (<data>/unidisk.key).
+      UNIDISK_ENCRYPTION_KEY: "${UNIDISK_ENCRYPTION_KEY:-}"
+      #
+      # Base URL for OAuth redirects & presigned share links. LEAVE EMPTY to
+      # auto-detect from each request — the app then works by IP or by DNS with
+      # no config, and behind a reverse proxy via X-Forwarded-* headers. Set it
+      # only to force a fixed URL, e.g. https://unidisk.example.com.
+      UNIDISK_PUBLIC_URL: "${UNIDISK_PUBLIC_URL:-}"
+      # "Connect with Google" flow: fill these from your OAuth client, or set
+      # them in a .env file next to this compose file (Compose loads it auto).
+      UNIDISK_GOOGLE_CLIENT_ID: "${UNIDISK_GOOGLE_CLIENT_ID:-}"
+      UNIDISK_GOOGLE_CLIENT_SECRET: "${UNIDISK_GOOGLE_CLIENT_SECRET:-}"
+      # "Connect with Dropbox" flow (Dropbox App Console → app key/secret).
+      UNIDISK_DROPBOX_APP_KEY: "${UNIDISK_DROPBOX_APP_KEY:-}"
+      UNIDISK_DROPBOX_APP_SECRET: "${UNIDISK_DROPBOX_APP_SECRET:-}"
+      # OneDrive (Azure app registration), Box, pCloud OAuth apps.
+      UNIDISK_ONEDRIVE_CLIENT_ID: "${UNIDISK_ONEDRIVE_CLIENT_ID:-}"
+      UNIDISK_ONEDRIVE_CLIENT_SECRET: "${UNIDISK_ONEDRIVE_CLIENT_SECRET:-}"
+      UNIDISK_BOX_CLIENT_ID: "${UNIDISK_BOX_CLIENT_ID:-}"
+      UNIDISK_BOX_CLIENT_SECRET: "${UNIDISK_BOX_CLIENT_SECRET:-}"
+      UNIDISK_PCLOUD_CLIENT_ID: "${UNIDISK_PCLOUD_CLIENT_ID:-}"
+      UNIDISK_PCLOUD_CLIENT_SECRET: "${UNIDISK_PCLOUD_CLIENT_SECRET:-}"
+      # S3-compatible needs no instance config — credentials are per-account.
+    restart: unless-stopped
+
+volumes:
+  unidisk-data:

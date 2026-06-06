@@ -1,0 +1,44 @@
+name: Claude Review
+
+# AI code review on every pull request, powered by Claude.
+#
+# Setup (one-time):
+#   1. Install the Claude GitHub App on this repo:  https://github.com/apps/claude
+#   2. Add a repository secret  ANTHROPIC_API_KEY  with an Anthropic API key
+#      (Settings → Secrets and variables → Actions).
+#
+# PRs from forks can't read secrets, so external contributors won't consume
+# your API credits — only trusted PRs are reviewed.
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    name: Claude PR review
+    runs-on: ubuntu-latest
+    # Skip if the API key isn't configured yet (keeps the repo green pre-setup).
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Claude Code Review
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          track_progress: true
+          prompt: |
+            Review this pull request for the UniDisk project (a self-hosted Go +
+            React storage-aggregation app). Give concise, actionable feedback on:
+            - Correctness bugs and unhandled edge cases
+            - Security (authn/authz, RBAC privilege checks, API-key scoping,
+              SQL/credential handling, the public presigned-download path)
+            - Go and React/TypeScript best practices and simplicity
+            - Anything that could break the build or the Docker image
+            Keep praise brief; focus on issues. If the PR looks good, say so.
