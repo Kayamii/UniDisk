@@ -2,13 +2,15 @@ name: Claude Review
 
 # AI code review on every pull request, powered by Claude.
 #
-# Setup (one-time):
+# Setup (one-time) — works with a Claude Pro/Max subscription (no API key):
 #   1. Install the Claude GitHub App on this repo:  https://github.com/apps/claude
-#   2. Add a repository secret  ANTHROPIC_API_KEY  with an Anthropic API key
+#   2. In your terminal run:  claude setup-token
+#      (generates a long-lived OAuth token from your Claude subscription).
+#   3. Add it as a repository secret named  CLAUDE_CODE_OAUTH_TOKEN
 #      (Settings → Secrets and variables → Actions).
 #
-# PRs from forks can't read secrets, so external contributors won't consume
-# your API credits — only trusted PRs are reviewed.
+# PRs from forks can't read secrets, so external contributors won't trigger
+# reviews — only trusted PRs are reviewed.
 on:
   pull_request:
     types: [opened, synchronize]
@@ -31,7 +33,7 @@ jobs:
       - name: Claude Code Review
         uses: anthropics/claude-code-action@v1
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           track_progress: true
           prompt: |
             Review this pull request for the UniDisk project (a self-hosted Go +
