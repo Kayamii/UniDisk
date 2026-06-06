@@ -18,6 +18,11 @@ var (
 	ErrWeakInput = errors.New("email required and password must be at least 8 characters")
 )
 
+// dummyHash is a valid bcrypt hash, generated once at the default cost, used to
+// equalize Login timing when an email doesn't exist (so a real comparison and a
+// miss take roughly the same time, resisting user enumeration).
+var dummyHash, _ = bcrypt.GenerateFromPassword([]byte("unidisk-timing-equalizer"), bcrypt.DefaultCost)
+
 // Service handles bootstrap registration, login, and password changes.
 type Service struct {
 	store  *store.Store
@@ -66,8 +71,9 @@ func (s *Service) Login(ctx context.Context, email, password string) (*store.Use
 	email = strings.TrimSpace(strings.ToLower(email))
 	user, err := s.store.UserByEmail(ctx, email)
 	if errors.Is(err, store.ErrNotFound) {
-		// Constant-ish time even when the email doesn't exist.
-		bcrypt.CompareHashAndPassword([]byte("$2a$10$invalidinvalidinvalidinvalidinvalidinvalidinv"), []byte(password))
+		// Compare against a valid dummy hash so the timing matches a real
+		// password check, preventing user enumeration via response time.
+		bcrypt.CompareHashAndPassword(dummyHash, []byte(password))
 		return nil, "", ErrInvalidCredentials
 	}
 	if err != nil {

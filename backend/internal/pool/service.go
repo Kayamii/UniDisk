@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"sync"
+	"time"
 
 	"github.com/unidisk/unidisk/internal/crypto"
 	"github.com/unidisk/unidisk/internal/provider"
@@ -106,8 +107,15 @@ func (s *Service) Upload(ctx context.Context, createdBy int64, parentID *int64, 
 		return nil, fmt.Errorf("record file metadata: %w", err)
 	}
 
-	// Best-effort usage refresh so the dashboard reflects the new upload.
-	s.refreshUsage(ctx, target, p, creds)
+	// Best-effort usage refresh so the dashboard reflects the new upload. Done
+	// in the background so a slow or rate-limited provider Usage() call doesn't
+	// add latency to the upload response; uses a fresh context because the
+	// request's is cancelled once we return.
+	go func() {
+		bg, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		s.refreshUsage(bg, target, p, creds)
+	}()
 	return f, nil
 }
 

@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/unidisk/unidisk/internal/provider"
 	"github.com/unidisk/unidisk/internal/store"
@@ -118,7 +119,10 @@ func (s *Server) handleOAuthCallback(w http.ResponseWriter, r *http.Request) {
 }
 
 // redirectToDashboard sends the browser back to the providers page with a
-// status query param the SPA can read to show a toast/message.
+// status query param the SPA can read to show a toast/message. The value is
+// URL-encoded so a provider-supplied error string can't break or inject into
+// the redirect URL.
 func (s *Server) redirectToDashboard(w http.ResponseWriter, r *http.Request, key, value string) {
-	http.Redirect(w, r, fmt.Sprintf("/providers?%s=%s", key, value), http.StatusFound)
+	q := url.Values{key: {value}}
+	http.Redirect(w, r, "/providers?"+q.Encode(), http.StatusFound)
 }

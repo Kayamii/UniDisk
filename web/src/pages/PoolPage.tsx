@@ -143,7 +143,7 @@ function RoutingCard() {
                 max={100}
                 className="w-24"
                 value={pct ?? ""}
-                onChange={(e) => setPct(Number(e.target.value))}
+                onChange={(e) => setPct(e.target.value === "" ? null : Number(e.target.value))}
               />
               <span className="text-sm text-muted-foreground">% used</span>
             </div>

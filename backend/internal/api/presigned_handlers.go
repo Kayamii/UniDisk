@@ -43,6 +43,10 @@ func (s *Server) handleCreatePresigned(w http.ResponseWriter, r *http.Request) {
 	if !decodeJSON(w, r, &body) {
 		return
 	}
+	if body.ExpiresInHours < 0 {
+		writeError(w, http.StatusBadRequest, "expires_in_hours must be 0 (never) or positive")
+		return
+	}
 	file, err := s.store.FileByID(r.Context(), body.FileID)
 	if errors.Is(err, store.ErrNotFound) {
 		writeError(w, http.StatusNotFound, "file not found")
