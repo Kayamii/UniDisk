@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96">
-  <rect x="0.5" y="0.5" width="95" height="95" rx="20" fill="#09090b" stroke="#27272a"/>
-  <g transform="translate(24 24)" fill="none" stroke="#fafafa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect x="0.5" y="0.5" width="63" height="63" rx="14" fill="#09090b" stroke="#27272a"/>
+  <g transform="translate(4 4) scale(2.33)" fill="none" stroke="#fafafa" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
     <circle cx="5" cy="4" r="1.6"/>
     <circle cx="12" cy="3" r="1.6"/>
     <circle cx="19" cy="4" r="1.6"/>
