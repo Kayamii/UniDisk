@@ -1,0 +1,21 @@
+# Keep secrets and local state out of the build context / image
+.env
+.env.local
+**/*.key
+
+# Dependencies and build output (rebuilt inside the image)
+**/node_modules
+**/dist
+backend/unidisk
+
+# Local data / databases
+data
+backend/data
+**/*.db
+**/*.db-*
+
+# VCS / CI / editor
+.git
+.github
+.gitignore
+**/.DS_Store
