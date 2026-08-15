@@ -1,6 +1,11 @@
 # Node
 web/node_modules/
 web/dist/
+web/*.tsbuildinfo
+
+# Playwright (screenshot capture)
+web/test-results/
+web/playwright-report/
 
 # Go
 backend/unidisk

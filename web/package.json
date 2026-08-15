@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "dev:demo": "cross-env VITE_DEMO=1 VITE_BASE=/ vite",
+    "build:demo": "cross-env VITE_DEMO=1 tsc -b && cross-env VITE_DEMO=1 vite build",
+    "preview": "vite preview",
+    "screenshots": "node scripts/screenshots.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.1",
@@ -25,7 +28,9 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.47.0",
     "@types/node": "^20.14.11",
+    "cross-env": "^7.0.3",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",

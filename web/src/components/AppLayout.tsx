@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth";
 import type { Privilege } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
+import { DemoBanner } from "@/components/DemoBanner";
 
 // Each nav item is shown only if the user holds its required privilege.
 const nav: { to: string; label: string; icon: typeof Files; end: boolean; priv: Privilege }[] = [
@@ -97,8 +98,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      <main className="flex-1 overflow-y-auto">
-        <div className="animate-page-in mx-auto max-w-5xl px-8 py-8">{children}</div>
+      <main className="flex flex-1 flex-col overflow-y-auto">
+        <DemoBanner />
+        <div className="animate-page-in mx-auto w-full max-w-5xl px-8 py-8">{children}</div>
       </main>
     </div>
   );
