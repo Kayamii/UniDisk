@@ -16,6 +16,10 @@ stay in your own provider accounts.
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Docker](https://img.shields.io/badge/ghcr.io-unidisk-blue?logo=docker)](https://github.com/Kayamii/UniDisk/pkgs/container/unidisk)
 
+### [▶ Try the live demo](https://kayamii.github.io/UniDisk/)
+
+*Runs entirely in your browser — no install, no sign-up, no server.*
+
 </div>
 
 ---
@@ -66,9 +70,86 @@ without caring where each file physically lives.
 
 ## Screenshots
 
-<!-- Add screenshots/GIFs here before release, e.g.: -->
-<!-- ![Files](docs/screenshots/files.png) -->
-<!-- ![Storage pool](docs/screenshots/pool.png) -->
+> Every screen below is in the [live demo](https://kayamii.github.io/UniDisk/) —
+> click through it yourself instead of taking the pictures' word for it.
+
+### One file manager over every account
+
+Folders, drag-and-drop upload, search, grid/list views, rename, delete. Nothing
+here tells you which cloud account a file lives on, because you don't need to
+know.
+
+![File manager](docs/screenshots/files.png)
+
+<details>
+<summary>Grid view &amp; light theme</summary>
+
+![Grid view](docs/screenshots/files-grid.png)
+
+![Light theme](docs/screenshots/files-light.png)
+
+</details>
+
+### The pool: separate accounts, one capacity
+
+Five free tiers add up to one 87 GB drive. Connect another account and the total
+grows — no migration, no reshuffling. The fill threshold below drives which
+account each new upload is routed to.
+
+![Storage pool](docs/screenshots/pool.png)
+
+### In-app preview
+
+Images, PDF, video, audio, and text/code render without downloading first.
+
+![File preview](docs/screenshots/preview.png)
+
+### Connect providers
+
+OAuth providers are one click. S3-compatible stores use a credential form
+rendered from the provider's declared schema — and verified live before the
+account is saved.
+
+| Connected accounts | Adding one |
+| --- | --- |
+| ![Providers](docs/screenshots/providers.png) | ![Add provider](docs/screenshots/add-provider.png) |
+
+### Users, roles, and keys
+
+Built-in Admin and Viewer roles, plus custom roles composed from granular
+privileges. API keys are scoped to file permissions and can never exceed the
+privileges of whoever created them.
+
+| Roles | Users |
+| --- | --- |
+| ![Roles](docs/screenshots/roles.png) | ![Users](docs/screenshots/users.png) |
+
+![API keys](docs/screenshots/api-keys.png)
+
+### Presigned share links
+
+Public, expiring, direct-download URLs for a single file — revocable at any time.
+
+![Share link](docs/screenshots/share-link.png)
+
+---
+
+## Live demo
+
+**<https://kayamii.github.io/UniDisk/>** — the real frontend, running with no
+backend at all.
+
+- **Nothing is stored on a server.** The demo build swaps the API client for an
+  in-browser stand-in; everything you do is answered locally and saved to *your*
+  browser's `localStorage`. No account, no data collection, nothing transmitted.
+- **It behaves like the real thing.** Upload files (they preview and download for
+  real), create folders, connect a fake provider, mint an API key, edit roles —
+  the state persists across reloads and is visible only to you.
+- **Reset any time** with the *Reset demo* button in the banner.
+- Seeded files are metadata only, so previewing one shows a placeholder rather
+  than invented content. Upload your own file to see a real preview.
+
+Run it locally with `cd web && npm install && npm run dev:demo`.
 
 ---
 
@@ -261,6 +342,43 @@ provider.
 
 ## Architecture
 
+UniDisk is a **metadata layer with a router in front of it**. It remembers which
+account holds each file; the bytes stream straight through the server to your
+providers without ever landing on its disk.
+
+```mermaid
+flowchart TB
+    SPA["React SPA<br/>TypeScript · Tailwind · shadcn/ui"]
+
+    subgraph server["UniDisk container — one Go binary"]
+        API["HTTP API + RBAC<br/>JWT · API keys · privileges"]
+        POOL["Pool router<br/>round-robin under fill threshold"]
+        DB[("SQLite<br/>file tree · users · roles<br/>encrypted credentials")]
+    end
+
+    subgraph providers["Your cloud accounts"]
+        direction LR
+        GD["Google Drive"]
+        DX["Dropbox"]
+        OD["OneDrive"]
+        ETC["Box · pCloud · S3"]
+    end
+
+    SPA -->|"/api/*"| API --> POOL
+    POOL <--> DB
+    POOL -->|"streamed bytes"| GD & DX & OD & ETC
+```
+
+**What lives where.** File *contents* stay in your provider accounts. UniDisk's
+SQLite database holds only the map — file names, sizes, folder structure, which
+account each file went to — plus users, roles, and provider credentials
+encrypted with AES-256-GCM. Back up `/data` and you have everything.
+
+**How a file is placed.** New uploads are spread round-robin across every
+account below the fill threshold (80% by default); when all are near-full, the
+account with the most free space wins. Connect another free account and the pool
+grows immediately, with new uploads landing there automatically.
+
 ```
 backend/   Go API + SQLite metadata store; streams files through to providers
   internal/provider/   one package per provider, implementing a shared interface
@@ -268,12 +386,12 @@ backend/   Go API + SQLite metadata store; streams files through to providers
   internal/api/        HTTP handlers, RBAC middleware, OAuth, presigned links
   internal/crypto/     AES-GCM encryption for credentials at rest
 web/       React + TypeScript + Tailwind + shadcn/ui dashboard
+  src/lib/demo/        in-browser backend used only by the public demo build
 Dockerfile single multi-stage build → one container serving API + SPA
 ```
 
-UniDisk stores only metadata (users, roles, file listings, and encrypted provider
-credentials). File contents never touch UniDisk's disk — they stream straight
-through to your providers.
+📐 **[Full architecture notes →](docs/architecture.md)** — request-path sequence
+diagram, the routing rule, the storage table, and the access-control model.
 
 ## License
 

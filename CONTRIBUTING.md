@@ -21,6 +21,36 @@ npm run dev
 
 Open <http://localhost:5173>.
 
+### Demo mode
+
+The frontend can run with no backend at all, against an in-browser stand-in that
+serves seeded data from `localStorage`. This is what the
+[public demo](https://kayamii.github.io/UniDisk/) is built from, and it's handy
+for working on the UI without a Go server:
+
+```bash
+cd web && npm run dev:demo
+```
+
+The stand-in lives in [`web/src/lib/demo/`](web/src/lib/demo/) and is reached
+only through the API client's `request()` chokepoint, so pages and components
+never need to know about it. Adding an endpoint to `lib/api.ts` means adding a
+matching route to `lib/demo/backend.ts` — otherwise the demo will 404 on it.
+Demo code is excluded from production builds, where `isDemo` is a constant
+`false`.
+
+### Regenerating the README screenshots
+
+```bash
+cd web
+npm run build:demo
+npm run screenshots      # writes docs/screenshots/*.png
+```
+
+The script drives the demo build with Playwright, so the screenshots always
+match the current UI. Re-run it whenever a visual change lands. First run needs
+`npx playwright install chromium`.
+
 ## Before opening a pull request
 
 ```bash

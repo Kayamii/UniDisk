@@ -1,5 +1,10 @@
 // Typed client for the UniDisk backend. The token is kept in localStorage and
 // attached as a bearer header on every request.
+//
+// In the public demo build (VITE_DEMO=1) every call below is served by an
+// in-browser stand-in instead of the network; see lib/demo.
+
+import { isDemo } from "./demo";
 
 // Privilege strings mirror the backend's store.Privilege constants.
 export type Privilege =
@@ -130,11 +135,22 @@ export class ApiError extends Error {
   }
 }
 
+// The demo backend is imported dynamically so that a normal build — where
+// isDemo is statically false — never pulls it into the bundle.
+type DemoBackend = typeof import("./demo/backend");
+let demoModule: Promise<DemoBackend> | null = null;
+function demo(): Promise<DemoBackend> {
+  if (!demoModule) demoModule = import("./demo/backend");
+  return demoModule;
+}
+
 async function request<T>(
   method: string,
   path: string,
   body?: unknown
 ): Promise<T> {
+  if (isDemo) return (await demo()).handle<T>(method, path, body);
+
   const headers: Record<string, string> = {};
   const token = getToken();
   if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -250,6 +266,8 @@ export const api = {
     parent: number | null,
     onProgress?: (p: { loaded: number; total: number; bps: number }) => void
   ): Promise<FileNode> {
+    if (isDemo) return demo().then((d) => d.demoUpload(file, parent, onProgress));
+
     return new Promise<FileNode>((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       const qs = parent != null ? `?parent=${parent}` : "";
@@ -281,6 +299,11 @@ export const api = {
    * url when done to free memory.
    */
   async previewBlob(id: number): Promise<{ url: string; type: string }> {
+    if (isDemo) {
+      const { blob, type } = await (await demo()).demoBlob(id);
+      return { url: URL.createObjectURL(blob), type };
+    }
+
     const headers: Record<string, string> = {};
     const token = getToken();
     if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -304,6 +327,13 @@ export const api = {
     name: string,
     onProgress?: (p: { loaded: number; total: number }) => void
   ): Promise<void> {
+    if (isDemo) {
+      const { blob } = await (await demo()).demoBlob(id);
+      onProgress?.({ loaded: blob.size, total: blob.size });
+      saveBlob(blob, name);
+      return;
+    }
+
     const headers: Record<string, string> = {};
     const token = getToken();
     if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -331,13 +361,18 @@ export const api = {
       blob = await res.blob();
     }
 
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = name;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+    saveBlob(blob, name);
   },
 };
+
+/** saveBlob triggers a browser download of an in-memory blob. */
+function saveBlob(blob: Blob, name: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}

@@ -1,7 +1,9 @@
 import { useState, type FormEvent } from "react";
+import { FlaskConical } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Logo } from "@/components/Logo";
 import { ApiError } from "@/lib/api";
+import { DEMO_EMAIL, DEMO_PASSWORD, isDemo } from "@/lib/demo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,8 +11,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 export function LoginPage() {
   const { login } = useAuth();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  // The demo prefills its credentials so a visitor can sign in in one click.
+  const [email, setEmail] = useState(isDemo ? DEMO_EMAIL : "");
+  const [password, setPassword] = useState(isDemo ? DEMO_PASSWORD : "");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -38,6 +41,19 @@ export function LoginPage() {
           <p className="text-sm text-muted-foreground">Your storage, unified.</p>
         </div>
       </div>
+      {isDemo && (
+        <div className="w-full max-w-sm rounded-lg border border-primary/30 bg-primary/5 p-3">
+          <p className="flex items-center gap-1.5 text-sm font-medium">
+            <FlaskConical className="h-4 w-4 text-primary" />
+            Live demo
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Credentials are filled in — just press Sign in. This build has no
+            backend: everything runs in your browser and is stored only here.
+          </p>
+        </div>
+      )}
+
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle className="text-xl">Sign in</CardTitle>
